@@ -54,8 +54,9 @@ describe('API tests', () => {
           .send(valid_rider_params)
           .end((err, res) => {
             expect(res).to.have.status(200);
-            expect(res.body[0]).to.have.property('rideID');
-            expect(res.body[0].rideID).to.equal(1);
+            expect(res.body.ride[0]).to.have.property('rideID');
+            expect(res.body.ride[0].rideID).to.equal(1);
+            expect(res.body.message).to.equal('Successfully create a ride');
             done();
           });
     });
@@ -126,8 +127,7 @@ describe('API tests', () => {
       chai.request(app)
           .get(`/rides/${id}`)
           .end((err, res) => {
-            expect(res.body.length).to.equal(1);
-            expect(res.body[0].rideID).to.equal(1);
+            expect(res.body.ride.rideID).to.equal(1);
             done();
           });
     });
