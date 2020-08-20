@@ -10,9 +10,6 @@
     "test": "nyc mocha tests",
     "start": "node index.js"
   },
-  "pre-push": [
-    "npm test"
-  ],
   "keywords": [
     "Xendit"
   ],
