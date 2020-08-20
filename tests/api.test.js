@@ -8,6 +8,11 @@ const db = new sqlite3.Database(':memory:');
 const app = require('../src/app')(db);
 const buildSchemas = require('../src/schemas');
 
+var chai = require('chai')
+var expect = chai.expect;
+var chaiHttp = require('chai-http');
+chai.use(chaiHttp);
+
 describe('API tests', () => {
   before((done) => {
     db.serialize((err) => {
@@ -29,4 +34,130 @@ describe('API tests', () => {
         .expect(200, done);
     });
   });
+
+  describe('GET /rides', () => {
+    it('should return error when no records available', (done) => {
+      chai.request(app)
+          .get('/rides')
+          .end((err, res) => {
+            expect(res.body.error_code).to.equal('RIDES_NOT_FOUND_ERROR');
+            expect(res.body.message).to.equal('Could not find any rides');
+            done();
+          });
+    });
+  });
+
+  describe('POST /rides', () => {
+    it('should create a new record when params in valid', (done) => {
+      chai.request(app)
+          .post('/rides')
+          .send(valid_rider_params)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
+            expect(res.body[0]).to.have.property('rideID');
+            expect(res.body[0].rideID).to.equal(1);
+            done();
+          });
+    });
+
+    it('should return errors when params is empty', (done) => {
+      chai.request(app)
+          .post('/rides')
+          .send({})
+          .end((err, res) => {
+            expect(res.body.error_code).to.equal('VALIDATION_ERROR');
+            expect(res.body.message).to.equal('Rider name must be a non empty string');
+            done();
+          });
+    });
+
+    it('should return error when start params is out of range', (done) => {
+      chai.request(app)
+          .post('/rides')
+          .send(invalid_start_params)
+          .end((err, res) => {
+            expect(res.body.error_code).to.equal('VALIDATION_ERROR');
+            expect(res.body.message).to.equal('Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively');
+            done();
+          });
+    });
+
+    it('should return error when end params is out of range', (done) => {
+      chai.request(app)
+          .post('/rides')
+          .send(invalid_end_params)
+          .end((err, res) => {
+            expect(res.body.error_code).to.equal('VALIDATION_ERROR');
+            expect(res.body.message).to.equal('End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively');
+            done();
+          });
+    });
+  });
+
+  describe('GET /rides', () => {
+    it('should return all rides', (done) => {
+      chai.request(app).post('/rides').send(valid_rider_params).end();
+      chai.request(app)
+          .get('/rides')
+          .end((err, res) => {
+            expect(res.body.length).to.equal(2);
+            done();
+          });
+    });
+  });
+
+  describe('GET /rides/:id', () => {
+    it('should return rider record with ID=1', (done) => {
+      const id = 1;
+      chai.request(app)
+          .get(`/rides/${id}`)
+          .end((err, res) => {
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0].rideID).to.equal(1);
+            done();
+          });
+    });
+
+    it('should return error when ID is not found', (done) => {
+      const id = 3;
+      chai.request(app)
+          .get(`/rides/${id}`)
+          .end((err, res) => {
+            expect(res.body.error_code).to.equal('RIDES_NOT_FOUND_ERROR');
+            expect(res.body.message).to.equal('Could not find any rides');
+            done();
+          });
+    });
+  });
+
+  // TODO: Moved to factory-bot
+  let valid_rider_params = {
+    'start_lat': 45,
+    'start_long': 45,
+    'end_lat': 60,
+    'end_long': 60,
+    'rider_name': 'lorem',
+    'driver_name': 'ipsum',
+    'driver_vehicle': 'lipsum'
+  };
+
+  let invalid_start_params = {
+    'start_lat': -120,
+    'start_long': 135,
+    'end_lat': 60,
+    'end_long': 60,
+    'rider_name': 'lorem',
+    'driver_name': 'ipsum',
+    'driver_vehicle': 'lipsum'
+  };
+
+  let invalid_end_params = {
+    'start_lat': 45,
+    'start_long': 45,
+    'end_lat': -120,
+    'end_long': 240,
+    'rider_name': 'lorem',
+    'driver_name': 'ipsum',
+    'driver_vehicle': 'lipsum'
+  };
 });
