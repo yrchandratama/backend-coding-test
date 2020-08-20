@@ -112,7 +112,11 @@ module.exports = (db) => {
   });
 
   app.get('/rides', (req, res) => {
-    db.all('SELECT * FROM Rides', function (err, rows) {
+    const page = parseInt(req.query.page) || 1;
+    const per_page = parseInt(req.query.per_page) || 5;
+    const offset = (page - 1) * per_page;
+
+    db.all(`SELECT * FROM Rides LIMIT ${per_page} OFFSET ${offset}`, function (err, rows) {
       if (err) {
         return res.send({
           error_code: 'SERVER_ERROR',
@@ -127,7 +131,11 @@ module.exports = (db) => {
         });
       }
 
-      res.send(rows);
+      res.send({
+        rides: rows,
+        page: page,
+        per_page: per_page
+      });
     });
   });
 
