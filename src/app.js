@@ -105,7 +105,10 @@ module.exports = (db) => {
             });
           }
 
-          res.send(rows);
+          res.send({
+            message: 'Successfully create a ride',
+            ride: rows
+          });
         });
       }
     );
@@ -158,7 +161,7 @@ module.exports = (db) => {
         });
       }
 
-      res.send(rows);
+      res.send({ride: rows[0]});
     });
   });
 
