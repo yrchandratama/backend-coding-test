@@ -95,14 +95,28 @@ describe('API tests', () => {
   });
 
   describe('GET /rides', () => {
-    it('should return all rides', (done) => {
+    it('should return all rides with default pagination', (done) => {
       chai.request(app).post('/rides').send(valid_rider_params).end();
       chai.request(app)
           .get('/rides')
           .end((err, res) => {
-            expect(res.body.length).to.equal(2);
+            expect(res.body.rides.length).to.equal(2);
+            expect(res.body.page).to.equal(1);
+            expect(res.body.per_page).to.equal(5);
             done();
           });
+    });
+
+    it('should return paginate rides with given pagination params', (done) => {
+      chai.request(app)
+          .get('/rides')
+          .query({page: 1, per_page: 1})
+          .end((err, res) => {
+            expect(res.body.rides.length).to.equal(1);
+            expect(res.body.page).to.equal(1);
+            expect(res.body.per_page).to.equal(1);
+            done();
+          })
     });
   });
 
