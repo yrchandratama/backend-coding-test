@@ -10,8 +10,8 @@ const winston = require('winston');
 const logger = winston.createLogger({
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: 'combined.log' })
-  ]
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
 });
 
 module.exports = (db) => {
@@ -73,6 +73,8 @@ module.exports = (db) => {
       });
     }
 
+    const query =
+      'INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)';
     var values = [
       req.body.start_lat,
       req.body.start_long,
@@ -82,8 +84,6 @@ module.exports = (db) => {
       req.body.driver_name,
       req.body.driver_vehicle,
     ];
-
-    const query = 'INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
     await db.run(query, values, function (err) {
       if (err) {
@@ -105,63 +105,62 @@ module.exports = (db) => {
 
         res.status(201).send({
           message: 'Successfully create a ride',
-          ride: rows[0]
+          ride: rows[0],
         });
       });
     });
   });
 
   app.get('/rides', async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const perPage = parseInt(req.query.perPage) || 5;
-    const offset = (page - 1) * perPage;
-
     try {
+      const page = parseInt(req.query.page) || 1;
+      const perPage = parseInt(req.query.perPage) || 5;
+      const offset = (page - 1) * perPage;
       const query = 'SELECT * FROM Rides LIMIT ? OFFSET ?';
 
       await db.all(query, perPage, offset, (_, rows) => {
         if (rows.length === 0) {
           return res.status(404).send({
             error_code: 'RIDES_NOT_FOUND_ERROR',
-            message: 'Could not find any rides'
+            message: 'Could not find any rides',
           });
         }
 
         return res.status(200).send({
           rides: rows,
           page: page,
-          perPage: perPage
+          perPage: perPage,
         });
       });
     } catch (err) {
       return res.status(500).send({
         error_code: 'SERVER_ERROR',
-        message: 'Unknown error'
+        message: 'Unknown error',
       });
     }
   });
 
   app.get('/rides/:id', async (req, res) => {
-    const id = req.params.id;
-    const query = `SELECT * FROM Rides WHERE rideID='${id}'`;
-
     try {
-      await db.all(query, (_, rows) => {
+      const params = req.params.id;
+      const query = 'SELECT * FROM Rides WHERE rideID = ?';
+
+      await db.all(query, params, (_, rows) => {
         if (rows.length === 0) {
           return res.status(404).send({
             error_code: 'RIDES_NOT_FOUND_ERROR',
-            message: 'Could not find any rides'
+            message: 'Could not find any rides',
           });
         }
 
         res.status(200).send({
-          ride: rows[0]
+          ride: rows[0],
         });
       });
     } catch (err) {
       return res.status(500).send({
         error_code: 'SERVER_ERROR',
-        message: 'Unknown error'
+        message: 'Unknown error',
       });
     }
   });
