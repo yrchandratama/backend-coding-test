@@ -1,0 +1,19 @@
+config:
+  target: 'http://localhost:8010'
+  phases:
+    - duration: 30
+      arrivalRate: 100
+scenarios:
+  - flow:
+    - post:
+        url: "/rides"
+        json:
+          start_lat: 45,
+          start_long: 45,
+          end_lat: 60,
+          end_long: 60,
+          rider_name: yudi riski,
+          driver_name: chandratama,
+          driver_vehicle: honda
+    - get:
+        url: "/rides"
