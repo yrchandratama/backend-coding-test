@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "nyc mocha tests",
+    "test:load": "npm start & artillery run artillery.yml",
     "start": "node index.js"
   },
   "husky": {
