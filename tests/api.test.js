@@ -40,6 +40,7 @@ describe('API tests', () => {
       chai.request(app)
           .get('/rides')
           .end((err, res) => {
+            expect(res).to.have.status(404);
             expect(res.body.error_code).to.equal('RIDES_NOT_FOUND_ERROR');
             expect(res.body.message).to.equal('Could not find any rides');
             done();
@@ -53,9 +54,9 @@ describe('API tests', () => {
           .post('/rides')
           .send(valid_rider_params)
           .end((err, res) => {
-            expect(res).to.have.status(200);
-            expect(res.body.ride[0]).to.have.property('rideID');
-            expect(res.body.ride[0].rideID).to.equal(1);
+            expect(res).to.have.status(201);
+            expect(res.body.ride).to.have.property('rideID');
+            expect(res.body.ride.rideID).to.equal(1);
             expect(res.body.message).to.equal('Successfully create a ride');
             done();
           });
@@ -66,6 +67,7 @@ describe('API tests', () => {
           .post('/rides')
           .send({})
           .end((err, res) => {
+            expect(res).to.have.status(400);
             expect(res.body.error_code).to.equal('VALIDATION_ERROR');
             expect(res.body.message).to.equal('Rider name must be a non empty string');
             done();
@@ -77,6 +79,7 @@ describe('API tests', () => {
           .post('/rides')
           .send(invalid_start_params)
           .end((err, res) => {
+            expect(res).to.have.status(400);
             expect(res.body.error_code).to.equal('VALIDATION_ERROR');
             expect(res.body.message).to.equal('Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively');
             done();
@@ -88,6 +91,7 @@ describe('API tests', () => {
           .post('/rides')
           .send(invalid_end_params)
           .end((err, res) => {
+            expect(res).to.have.status(400);
             expect(res.body.error_code).to.equal('VALIDATION_ERROR');
             expect(res.body.message).to.equal('End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively');
             done();
@@ -101,9 +105,10 @@ describe('API tests', () => {
       chai.request(app)
           .get('/rides')
           .end((err, res) => {
+            expect(res).to.have.status(200);
             expect(res.body.rides.length).to.equal(2);
             expect(res.body.page).to.equal(1);
-            expect(res.body.per_page).to.equal(5);
+            expect(res.body.perPage).to.equal(5);
             done();
           });
     });
@@ -111,11 +116,12 @@ describe('API tests', () => {
     it('should return paginate rides with given pagination params', (done) => {
       chai.request(app)
           .get('/rides')
-          .query({page: 1, per_page: 1})
+          .query({page: 1, perPage: 1})
           .end((err, res) => {
+            expect(res).to.have.status(200);
             expect(res.body.rides.length).to.equal(1);
             expect(res.body.page).to.equal(1);
-            expect(res.body.per_page).to.equal(1);
+            expect(res.body.perPage).to.equal(1);
             done();
           })
     });
@@ -127,6 +133,7 @@ describe('API tests', () => {
       chai.request(app)
           .get(`/rides/${id}`)
           .end((err, res) => {
+            expect(res).to.have.status(200);
             expect(res.body.ride.rideID).to.equal(1);
             done();
           });
@@ -137,6 +144,7 @@ describe('API tests', () => {
       chai.request(app)
           .get(`/rides/${id}`)
           .end((err, res) => {
+            expect(res).to.have.status(404);
             expect(res.body.error_code).to.equal('RIDES_NOT_FOUND_ERROR');
             expect(res.body.message).to.equal('Could not find any rides');
             done();
